@@ -119,11 +119,11 @@
         <form id="resetForm">
             <div class="form-group">
                 <label for="password">New Password</label>
-                <input type="password" id="password" required minlength="6">
+                <input type="password" id="password" required minlength="6" placeholder="Enter your new password">
             </div>
             <div class="form-group">
                 <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" required minlength="6">
+                <input type="password" id="confirmPassword" required minlength="6" placeholder="Confirm your new password">
             </div>
             <button type="submit" class="button" id="resetButton">Reset Password</button>
         </form>
@@ -139,9 +139,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             const type = urlParams.get('type');
-
-            // Show loading state
-            messageDiv.innerHTML = '<p>Processing your request...</p>';
+            const apikey = urlParams.get('apikey');
 
             if (!token || !type) {
                 messageDiv.innerHTML = '<p class="error">Invalid authentication link. Please try again.</p>';
@@ -150,7 +148,7 @@
 
             // Initialize Supabase client
             const supabaseUrl = 'https://yfizikxjbncxbhwymxul.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MjQ5NzAsImV4cCI6MjAyNTQwMDk3MH0.s2c2VCPFfCqrB4jB_XhSix1SQHqjQBJ4XsIcUL2Sl0I';
+            const supabaseKey = apikey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MjQ5NzAsImV4cCI6MjAyNTQwMDk3MH0.s2c2VCPFfCqrB4jB_XhSix1SQHqjQBJ4XsIcUL2Sl0I';
             const { createClient } = supabase;
             const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -158,7 +156,7 @@
                 // Handle password reset
                 pageTitle.textContent = 'Reset Password';
                 resetForm.style.display = 'block';
-                messageDiv.innerHTML = '';
+                messageDiv.innerHTML = '<p>Please enter your new password below:</p>';
 
                 resetForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
@@ -167,21 +165,26 @@
                     const resetButton = document.getElementById('resetButton');
 
                     if (password !== confirmPassword) {
-                        messageDiv.innerHTML = '<p class="error">Passwords do not match.</p>';
+                        messageDiv.innerHTML = '<p class="error">Passwords do not match. Please try again.</p>';
+                        return;
+                    }
+
+                    if (password.length < 6) {
+                        messageDiv.innerHTML = '<p class="error">Password must be at least 6 characters long.</p>';
                         return;
                     }
 
                     resetButton.disabled = true;
-                    resetButton.innerHTML = 'Resetting...<span class="loading"></span>';
+                    resetButton.innerHTML = 'Resetting Password<span class="loading"></span>';
 
                     try {
-                        // Verify the token and update password
-                        const { error } = await supabase.auth.verifyOtp({
+                        // Verify the token first
+                        const { error: verifyError } = await supabase.auth.verifyOtp({
                             token_hash: token,
                             type: type
                         });
 
-                        if (error) throw error;
+                        if (verifyError) throw verifyError;
 
                         // Update the password
                         const { error: updateError } = await supabase.auth.updateUser({
@@ -202,6 +205,8 @@
             } else if (type === 'signup') {
                 // Handle email confirmation
                 pageTitle.textContent = 'Email Confirmation';
+                messageDiv.innerHTML = '<p>Confirming your email address...</p>';
+
                 try {
                     const { error } = await supabase.auth.verifyOtp({
                         token_hash: token,

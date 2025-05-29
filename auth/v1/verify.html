@@ -113,7 +113,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="./assets/icon128.png" alt="Frankie AI" class="logo">
+        <img src="../../assets/icon128.png" alt="Frankie AI" class="logo">
         <h1 id="pageTitle">Authentication</h1>
         <div id="message"></div>
         <form id="resetForm">
@@ -139,6 +139,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             const type = urlParams.get('type');
+            const apikey = urlParams.get('apikey');
 
             // Show loading state
             messageDiv.innerHTML = '<p>Processing your request...</p>';
@@ -150,7 +151,7 @@
 
             // Initialize Supabase client
             const supabaseUrl = 'https://yfizikxjbncxbhwymxul.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MjQ5NzAsImV4cCI6MjAyNTQwMDk3MH0.s2c2VCPFfCqrB4jB_XhSix1SQHqjQBJ4XsIcUL2Sl0I';
+            const supabaseKey = apikey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MjQ5NzAsImV4cCI6MjAyNTQwMDk3MH0.s2c2VCPFfCqrB4jB_XhSix1SQHqjQBJ4XsIcUL2Sl0I';
             const { createClient } = supabase;
             const supabase = createClient(supabaseUrl, supabaseKey);
 

@@ -133,6 +133,16 @@
     </div>
 
     <script>
+        // Helper to parse URL fragment (hash) into an object
+        function parseHash(hash) {
+            const params = {};
+            hash.replace(/^#/, '').split('&').forEach(pair => {
+                const [key, value] = pair.split('=');
+                if (key) params[key] = decodeURIComponent(value);
+            });
+            return params;
+        }
+
         window.addEventListener('load', async function() {
             const messageDiv = document.getElementById('message');
             const resetForm = document.getElementById('resetForm');
@@ -141,7 +151,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
             const type = urlParams.get('type');
-            const apikey = urlParams.get('apikey');
+            // Parse session tokens from URL fragment (if present)
+            const hashParams = parseHash(window.location.hash);
+            const access_token = hashParams['access_token'];
+            const refresh_token = hashParams['refresh_token'];
 
             if (!token || !type) {
                 messageDiv.innerHTML = '<p class="error">Invalid authentication link. Please try again.</p>';
@@ -150,9 +163,19 @@
 
             // Initialize Supabase client after library is loaded
             const supabaseUrl = 'https://yfizikxjbncxbhwymxul.supabase.co';
-            const supabaseKey = apikey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MjQ5NzAsImV4cCI6MjAyNTQwMDk3MH0.s2c2VCPFfCqrB4jB_XhSix1SQHqjQBJ4XsIcUL2Sl0I';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0OTg4MDksImV4cCI6MjA2MzA3NDgwOX0.IzEuCJzeNlf3cfSl5ulD9JMnvWFncxGPqngev_0XXpU';
             const { createClient } = supabase;
             const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+            // If access_token and refresh_token are present, set the session
+            if (access_token && refresh_token) {
+                try {
+                    await supabaseClient.auth.setSession({ access_token, refresh_token });
+                } catch (e) {
+                    messageDiv.innerHTML = `<p class="error">Failed to set session: ${e.message}</p>`;
+                    return;
+                }
+            }
 
             if (type === 'recovery') {
                 // Handle password reset
@@ -180,21 +203,25 @@
                     resetButton.innerHTML = 'Resetting Password<span class="loading"></span>';
 
                     try {
-                        // Verify the token first
-                        const { error: verifyError } = await supabaseClient.auth.verifyOtp({
-                            token_hash: token,
-                            type: type
-                        });
-
-                        if (verifyError) throw verifyError;
-
-                        // Update the password
+                        // If session is not set, try to verify OTP and set session
+                        if (!access_token || !refresh_token) {
+                            const { data, error } = await supabaseClient.auth.verifyOtp({
+                                token_hash: token,
+                                type: type
+                            });
+                            if (error) throw error;
+                            if (data && data.session) {
+                                await supabaseClient.auth.setSession({
+                                    access_token: data.session.access_token,
+                                    refresh_token: data.session.refresh_token
+                                });
+                            }
+                        }
+                        // Now update the password (user is authenticated)
                         const { error: updateError } = await supabaseClient.auth.updateUser({
                             password: password
                         });
-
                         if (updateError) throw updateError;
-
                         messageDiv.innerHTML = '<p class="success">Password reset successfully! You can now return to the extension.</p>';
                         resetForm.style.display = 'none';
                         returnButton.style.display = 'inline-block';
@@ -208,15 +235,21 @@
                 // Handle email confirmation
                 pageTitle.textContent = 'Email Confirmation';
                 messageDiv.innerHTML = '<p>Confirming your email address...</p>';
-
                 try {
-                    const { error } = await supabaseClient.auth.verifyOtp({
-                        token_hash: token,
-                        type: type
-                    });
-
-                    if (error) throw error;
-
+                    // If session is not set, try to verify OTP and set session
+                    if (!access_token || !refresh_token) {
+                        const { data, error } = await supabaseClient.auth.verifyOtp({
+                            token_hash: token,
+                            type: type
+                        });
+                        if (error) throw error;
+                        if (data && data.session) {
+                            await supabaseClient.auth.setSession({
+                                access_token: data.session.access_token,
+                                refresh_token: data.session.refresh_token
+                            });
+                        }
+                    }
                     messageDiv.innerHTML = '<p class="success">Email confirmed successfully! You can now return to the extension.</p>';
                     returnButton.style.display = 'inline-block';
                 } catch (error) {

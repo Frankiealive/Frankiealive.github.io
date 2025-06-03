@@ -93,9 +93,6 @@
         #resetForm {
             display: none;
         }
-        #returnButton {
-            display: none;
-        }
         .loading {
             display: inline-block;
             width: 20px;
@@ -127,14 +124,12 @@
             </div>
             <button type="submit" class="button" id="resetButton">Reset Password</button>
         </form>
-        <a href="chrome-extension://dfmlaekbnhhjecdfmakaekblhholniof/popup.html" class="button" id="returnButton">Return to Extension</a>
     </div>
 
     <script>
         window.addEventListener('load', async function() {
             const messageDiv = document.getElementById('message');
             const resetForm = document.getElementById('resetForm');
-            const returnButton = document.getElementById('returnButton');
             const pageTitle = document.getElementById('pageTitle');
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
@@ -195,7 +190,6 @@
 
                         messageDiv.innerHTML = '<p class="success">Password reset successfully! You can now return to the extension.</p>';
                         resetForm.style.display = 'none';
-                        returnButton.style.display = 'inline-block';
                     } catch (error) {
                         messageDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
                         resetButton.disabled = false;
@@ -216,7 +210,6 @@
                     if (error) throw error;
 
                     messageDiv.innerHTML = '<p class="success">Email confirmed successfully! You can now return to the extension.</p>';
-                    returnButton.style.display = 'inline-block';
                 } catch (error) {
                     messageDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
                 }

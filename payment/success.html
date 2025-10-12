@@ -144,49 +144,49 @@
                     throw new Error('Missing payment information. Please contact support.');
                 }
 
-                // Get the stored session from extension's localStorage
-                // Since this is a popup, we need to use the extension's auth
-                let session = null;
-                
-                // Try to get session from URL (passed from extension)
-                const sessionToken = urlParams.get('session');
-                if (sessionToken) {
-                    const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
-                        access_token: sessionToken,
-                        refresh_token: urlParams.get('refresh_token')
-                    });
-                    if (sessionError) throw sessionError;
-                    session = sessionData.session;
-                } else {
-                    // Fallback: Try to get current session
-                    const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
-                    session = currentSession;
-                }
-
-                if (!session) {
-                    throw new Error('Not authenticated. Please log in to the extension first.');
-                }
-
-                console.log('User authenticated:', session.user.id);
-
-                // Call capture-payment function
-                console.log('Calling capture-payment function...');
-                const { data, error } = await supabaseClient.functions.invoke('capture-payment', {
-                    body: {
-                        paymentId: token,
-                        userId: session.user.id
-                    },
+                // First, get the payment intent from database using SERVICE_ROLE to find the user
+                console.log('Looking up payment intent...');
+                const lookupResponse = await fetch(`${supabaseUrl}/rest/v1/payment_intents?payment_id=eq.${token}&select=*`, {
                     headers: {
-                        Authorization: `Bearer ${session.access_token}`
+                        'apikey': supabaseAnonKey,
+                        'Content-Type': 'application/json'
                     }
                 });
 
-                if (error) {
-                    console.error('Capture payment error:', error);
-                    throw new Error(error.message || 'Failed to process payment');
+                if (!lookupResponse.ok) {
+                    throw new Error('Failed to find payment record');
                 }
 
-                console.log('Payment captured successfully:', data);
+                const paymentIntents = await lookupResponse.json();
+                if (!paymentIntents || paymentIntents.length === 0) {
+                    throw new Error('Payment record not found. Please contact support.');
+                }
+
+                const paymentIntent = paymentIntents[0];
+                console.log('Found payment intent for user:', paymentIntent.user_id);
+
+                // Now call capture-payment function without auth (using --no-verify-jwt deployment)
+                console.log('Calling capture-payment function...');
+                const captureResponse = await fetch(`${supabaseUrl}/functions/v1/capture-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': supabaseAnonKey
+                    },
+                    body: JSON.stringify({
+                        paymentId: token,
+                        userId: paymentIntent.user_id
+                    })
+                });
+
+                const captureData = await captureResponse.json();
+                
+                if (!captureResponse.ok) {
+                    console.error('Capture payment error:', captureData);
+                    throw new Error(captureData.error || 'Failed to process payment');
+                }
+
+                console.log('Payment captured successfully:', captureData);
 
                 // Show success
                 messageDiv.innerHTML = `

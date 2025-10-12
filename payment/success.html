@@ -144,28 +144,7 @@
                     throw new Error('Missing payment information. Please contact support.');
                 }
 
-                // First, get the payment intent from database using SERVICE_ROLE to find the user
-                console.log('Looking up payment intent...');
-                const lookupResponse = await fetch(`${supabaseUrl}/rest/v1/payment_intents?payment_id=eq.${token}&select=*`, {
-                    headers: {
-                        'apikey': supabaseAnonKey,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!lookupResponse.ok) {
-                    throw new Error('Failed to find payment record');
-                }
-
-                const paymentIntents = await lookupResponse.json();
-                if (!paymentIntents || paymentIntents.length === 0) {
-                    throw new Error('Payment record not found. Please contact support.');
-                }
-
-                const paymentIntent = paymentIntents[0];
-                console.log('Found payment intent for user:', paymentIntent.user_id);
-
-                // Now call capture-payment function without auth (using --no-verify-jwt deployment)
+                // Call capture-payment function directly (no auth needed, it uses SERVICE_ROLE internally)
                 console.log('Calling capture-payment function...');
                 const captureResponse = await fetch(`${supabaseUrl}/functions/v1/capture-payment`, {
                     method: 'POST',
@@ -174,8 +153,7 @@
                         'apikey': supabaseAnonKey
                     },
                     body: JSON.stringify({
-                        paymentId: token,
-                        userId: paymentIntent.user_id
+                        paymentId: token
                     })
                 });
 

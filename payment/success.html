@@ -144,9 +144,9 @@
                     throw new Error('Missing orderId');
                 }
 
-                // Call capture-payment function directly (no auth needed, it uses SERVICE_ROLE internally)
-                console.log('Calling capture-payment function...');
-                const captureResponse = await fetch(`${supabaseUrl}/functions/v1/capture-payment`, {
+                // Call check-payment-status which handles both checking and capturing
+                console.log('Calling check-payment-status function...');
+                const statusResponse = await fetch(`${supabaseUrl}/functions/v1/check-payment-status`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -157,14 +157,19 @@
                     })
                 });
 
-                const captureData = await captureResponse.json();
+                const statusData = await statusResponse.json();
                 
-                if (!captureResponse.ok) {
-                    console.error('Capture payment error:', captureData);
-                    throw new Error(captureData.error || 'Failed to process payment');
+                if (!statusResponse.ok) {
+                    console.error('Check payment status error:', statusData);
+                    throw new Error(statusData.error || 'Failed to process payment');
                 }
 
-                console.log('Payment captured successfully:', captureData);
+                console.log('Payment status result:', statusData);
+
+                // If payment is not COMPLETED yet, show a waiting message
+                if (statusData.status !== 'COMPLETED') {
+                    throw new Error(`Payment not completed. Status: ${statusData.status}`);
+                }
 
                 // Show success
                 messageDiv.innerHTML = `
@@ -173,7 +178,7 @@
                     <p class="status success">Your payment has been processed successfully.</p>
                     <div class="details">
                         <p><strong>Order ID:</strong> ${token}</p>
-                        ${captureData.wordsAdded ? `<p><strong>Words Added:</strong> ${captureData.wordsAdded.toLocaleString()}</p>` : ''}
+                        ${statusData.wordsAdded ? `<p><strong>Words Added:</strong> ${statusData.wordsAdded.toLocaleString()}</p>` : ''}
                         <p>Your word balance has been updated.</p>
                     </div>
                     <p>You can now close this window and return to the extension.</p>

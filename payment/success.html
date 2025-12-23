@@ -141,7 +141,7 @@
                 console.log('PayPal callback params:', { token, payerId });
 
                 if (!token) {
-                    throw new Error('Missing payment information. Please contact support.');
+                    throw new Error('Missing orderId');
                 }
 
                 // Call capture-payment function directly (no auth needed, it uses SERVICE_ROLE internally)
@@ -153,7 +153,7 @@
                         'apikey': supabaseAnonKey
                     },
                     body: JSON.stringify({
-                        paymentId: token
+                        orderId: token
                     })
                 });
 
@@ -173,7 +173,8 @@
                     <p class="status success">Your payment has been processed successfully.</p>
                     <div class="details">
                         <p><strong>Order ID:</strong> ${token}</p>
-                        <p>Your message balance has been updated.</p>
+                        ${captureData.wordsAdded ? `<p><strong>Words Added:</strong> ${captureData.wordsAdded.toLocaleString()}</p>` : ''}
+                        <p>Your word balance has been updated.</p>
                     </div>
                     <p>You can now close this window and return to the extension.</p>
                     <button class="button" onclick="window.close()">Close Window</button>

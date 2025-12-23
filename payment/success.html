@@ -3,211 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Processing - Frankie AI</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Payment Processing - Behalf AI</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
         }
         .container {
             background: white;
-            padding: 3rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            text-align: center;
+            border-radius: 20px;
+            padding: 40px;
             max-width: 500px;
-            width: 90%;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        .logo {
+        .icon {
             width: 80px;
             height: 80px;
-            margin-bottom: 1.5rem;
-            animation: pulse 2s infinite;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+        .icon.success {
+            background: #10B981;
+            color: white;
+        }
+        .icon.processing {
+            background: #F59E0B;
+            color: white;
+        }
+        .icon.error {
+            background: #EF4444;
+            color: white;
         }
         h1 {
-            color: #7c3aed;
-            margin-bottom: 1rem;
-            font-size: 28px;
+            color: #1F2937;
+            font-size: 24px;
+            margin-bottom: 12px;
         }
-        p {
-            color: #4b5563;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
+        .subtitle {
+            color: #6B7280;
             font-size: 16px;
-        }
-        .status {
-            font-weight: 600;
-            font-size: 18px;
-            margin: 1.5rem 0;
-        }
-        .success {
-            color: #059669;
-        }
-        .error {
-            color: #dc2626;
-        }
-        .processing {
-            color: #7c3aed;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #7c3aed;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-        .button {
-            background: #7c3aed;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 1rem;
-            transition: all 0.3s;
-        }
-        .button:hover {
-            background: #6d28d9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            line-height: 1.5;
+            margin-bottom: 24px;
         }
         .details {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            font-size: 14px;
-            color: #6b7280;
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
         }
-        .checkmark {
-            font-size: 64px;
-            animation: scaleIn 0.5s ease-out;
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #6B7280;
+            font-size: 14px;
+        }
+        .detail-value {
+            color: #1F2937;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #374151;
+            margin-right: 10px;
+        }
+        .btn-secondary:hover {
+            background: #E5E7EB;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-completed {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .status-processing {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        .status-error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #F3F4F6;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
-        @keyframes scaleIn {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .retry-info {
+            font-size: 12px;
+            color: #9CA3AF;
+            margin-top: 10px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background: #FEF3C7;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #92400E;
+            text-align: left;
+        }
+        .debug-info pre {
+            white-space: pre-wrap;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="message"></div>
+    <div class="container" id="container">
+        <div class="loading-container" id="loadingState">
+            <div class="spinner"></div>
+            <h1>Processing Payment</h1>
+            <p class="subtitle">Please wait while we confirm your payment...</p>
+            <p class="retry-info" id="retryInfo"></p>
+        </div>
+        
+        <div id="successState" style="display: none;">
+            <div class="icon success">✓</div>
+            <h1>Payment Successful!</h1>
+            <p class="subtitle">Your words have been added to your account.</p>
+            <div class="details">
+                <div class="detail-row">
+                    <span class="detail-label">Order ID</span>
+                    <span class="detail-value" id="orderId">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Words Added</span>
+                    <span class="detail-value" id="wordsAdded">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="status-badge status-completed">Completed</span>
+                </div>
+            </div>
+            <a href="https://behalfai.vercel.app/" class="btn btn-primary">Return to Dashboard</a>
+        </div>
+        
+        <div id="processingState" style="display: none;">
+            <div class="icon processing">⏳</div>
+            <h1>Payment Approved</h1>
+            <p class="subtitle">Your payment has been approved and is being finalized. This usually takes a few seconds.</p>
+            <div class="details">
+                <div class="detail-row">
+                    <span class="detail-label">Order ID</span>
+                    <span class="detail-value" id="processingOrderId">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="status-badge status-processing">Processing</span>
+                </div>
+            </div>
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p class="retry-info" id="processingRetryInfo">Checking status...</p>
+            </div>
+            <div class="button-group" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="checkPaymentNow()">Check Again</button>
+                <a href="https://behalfai.vercel.app/" class="btn btn-primary">Return to Dashboard</a>
+            </div>
+        </div>
+        
+        <div id="errorState" style="display: none;">
+            <div class="icon error">✕</div>
+            <h1>Payment Issue</h1>
+            <p class="subtitle" id="errorMessage">There was an issue with your payment.</p>
+            <div class="details" id="errorDetails" style="display: none;">
+                <div class="detail-row">
+                    <span class="detail-label">Order ID</span>
+                    <span class="detail-value" id="errorOrderId">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="status-badge status-error" id="errorStatus">Error</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="checkPaymentNow()">Try Again</button>
+                <a href="https://behalfai.vercel.app/" class="btn btn-primary">Return to Dashboard</a>
+            </div>
+            <div class="debug-info" id="debugInfo" style="display: none;">
+                <strong>Debug Info:</strong>
+                <pre id="debugContent"></pre>
+            </div>
+        </div>
     </div>
 
     <script>
-        const supabaseUrl = 'https://yfizikxjbncxbhwymxul.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmaXppa3hqYm5jeGJod3lteHVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MjA5MTIsImV4cCI6MjA2MTE5NjkxMn0.C3oNaMuBUeOhUGcX7jQwCJxA5bQdOdRxhPbC8YCvUpw';
+        const SUPABASE_URL = 'https://yfizikxjbncxbhwymxul.supabase.co';
+        const MAX_RETRIES = 15;
+        const RETRY_INTERVAL = 2000; // 2 seconds
         
-        const { createClient } = supabase;
-        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-
-        async function processPayment() {
-            const messageDiv = document.getElementById('message');
+        let retryCount = 0;
+        let orderId = null;
+        let isPolling = false;
+        
+        function showState(state) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'none';
+            document.getElementById('processingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
             
-            // Show processing state
-            messageDiv.innerHTML = `
-                <div class="spinner"></div>
-                <h1>Processing Payment</h1>
-                <p class="status processing">Please wait while we confirm your payment...</p>
-            `;
-
-            try {
-                // Get PayPal parameters from URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const token = urlParams.get('token'); // PayPal order ID
-                const payerId = urlParams.get('PayerID');
-
-                console.log('PayPal callback params:', { token, payerId });
-
-                if (!token) {
-                    throw new Error('Missing orderId');
-                }
-
-                // Call check-payment-status which handles both checking and capturing
-                console.log('Calling check-payment-status function...');
-                const statusResponse = await fetch(`${supabaseUrl}/functions/v1/check-payment-status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': supabaseAnonKey
-                    },
-                    body: JSON.stringify({
-                        orderId: token
-                    })
-                });
-
-                const statusData = await statusResponse.json();
-                
-                if (!statusResponse.ok) {
-                    console.error('Check payment status error:', statusData);
-                    throw new Error(statusData.error || 'Failed to process payment');
-                }
-
-                console.log('Payment status result:', statusData);
-
-                // If payment is not COMPLETED yet, show a waiting message
-                if (statusData.status !== 'COMPLETED') {
-                    throw new Error(`Payment not completed. Status: ${statusData.status}`);
-                }
-
-                // Show success
-                messageDiv.innerHTML = `
-                    <div class="checkmark">✓</div>
-                    <h1>Payment Successful!</h1>
-                    <p class="status success">Your payment has been processed successfully.</p>
-                    <div class="details">
-                        <p><strong>Order ID:</strong> ${token}</p>
-                        ${statusData.wordsAdded ? `<p><strong>Words Added:</strong> ${statusData.wordsAdded.toLocaleString()}</p>` : ''}
-                        <p>Your word balance has been updated.</p>
-                    </div>
-                    <p>You can now close this window and return to the extension.</p>
-                    <button class="button" onclick="window.close()">Close Window</button>
-                `;
-
-                // Auto-close after 5 seconds
-                setTimeout(() => {
-                    window.close();
-                }, 5000);
-
-            } catch (error) {
-                console.error('Payment processing error:', error);
-                
-                messageDiv.innerHTML = `
-                    <div style="font-size: 64px; color: #dc2626;">✕</div>
-                    <h1>Payment Error</h1>
-                    <p class="status error">Sorry, there was an error processing your payment.</p>
-                    <div class="details">
-                        <p>${error.message}</p>
-                    </div>
-                    <p>Please contact support if the problem persists.</p>
-                    <button class="button" onclick="window.close()">Close Window</button>
-                `;
+            if (state === 'loading') {
+                document.getElementById('loadingState').style.display = 'block';
+            } else if (state === 'success') {
+                document.getElementById('successState').style.display = 'block';
+            } else if (state === 'processing') {
+                document.getElementById('processingState').style.display = 'block';
+            } else if (state === 'error') {
+                document.getElementById('errorState').style.display = 'block';
             }
         }
-
-        // Start processing when page loads
-        window.addEventListener('load', processPayment);
+        
+        function updateRetryInfo(attempt, max) {
+            const info = `Attempt ${attempt} of ${max}...`;
+            document.getElementById('retryInfo').textContent = info;
+            document.getElementById('processingRetryInfo').textContent = info;
+        }
+        
+        async function checkPaymentStatus() {
+            if (!orderId) {
+                showError('No order ID found in URL');
+                return;
+            }
+            
+            retryCount++;
+            updateRetryInfo(retryCount, MAX_RETRIES);
+            
+            console.log(`[Payment] Checking status for order ${orderId}, attempt ${retryCount}`);
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/check-payment-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId })
+                });
+                
+                const data = await response.json();
+                console.log('[Payment] Response:', data);
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                
+                const status = data.status;
+                
+                if (status === 'COMPLETED') {
+                    // Success! Payment completed
+                    showSuccess(data);
+                    return;
+                } else if (status === 'APPROVED' || status === 'PENDING' || status === 'CREATED') {
+                    // Still processing, show processing state and continue polling
+                    showProcessing();
+                    
+                    if (retryCount < MAX_RETRIES) {
+                        setTimeout(checkPaymentStatus, RETRY_INTERVAL);
+                    } else {
+                        // Max retries reached, show processing state with manual option
+                        document.getElementById('processingRetryInfo').textContent = 
+                            'Processing is taking longer than expected. You can check your dashboard or try again.';
+                    }
+                    return;
+                } else if (status === 'VOIDED' || status === 'CANCELLED') {
+                    showError(`Payment was ${status.toLowerCase()}.`, status);
+                    return;
+                } else {
+                    // Unknown status, keep polling if we haven't hit max
+                    if (retryCount < MAX_RETRIES) {
+                        showProcessing();
+                        setTimeout(checkPaymentStatus, RETRY_INTERVAL);
+                    } else {
+                        showError(`Unexpected payment status: ${status}`, status);
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.error('[Payment] Error:', error);
+                
+                // On error, keep polling if we haven't hit max retries
+                if (retryCount < MAX_RETRIES) {
+                    showProcessing();
+                    setTimeout(checkPaymentStatus, RETRY_INTERVAL);
+                } else {
+                    showError(`Error checking payment: ${error.message}`);
+                    document.getElementById('debugInfo').style.display = 'block';
+                    document.getElementById('debugContent').textContent = JSON.stringify({
+                        error: error.message,
+                        orderId,
+                        attempts: retryCount
+                    }, null, 2);
+                }
+            }
+        }
+        
+        function showSuccess(data) {
+            document.getElementById('orderId').textContent = orderId;
+            document.getElementById('wordsAdded').textContent = 
+                data.wordsAdded ? `${data.wordsAdded.toLocaleString()} words` : 'Added to your account';
+            showState('success');
+        }
+        
+        function showProcessing() {
+            document.getElementById('processingOrderId').textContent = orderId;
+            showState('processing');
+        }
+        
+        function showError(message, status = 'Error') {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorStatus').textContent = status;
+            if (orderId) {
+                document.getElementById('errorDetails').style.display = 'block';
+                document.getElementById('errorOrderId').textContent = orderId;
+            }
+            showState('error');
+        }
+        
+        function checkPaymentNow() {
+            retryCount = 0;
+            showState('loading');
+            checkPaymentStatus();
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get order ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            orderId = urlParams.get('token');
+            
+            console.log('[Payment] Page loaded with token:', orderId);
+            console.log('[Payment] Full URL:', window.location.href);
+            console.log('[Payment] All params:', Object.fromEntries(urlParams));
+            
+            if (!orderId) {
+                showError('No payment token found. Please try again from the dashboard.');
+                return;
+            }
+            
+            // Start checking payment status
+            checkPaymentStatus();
+        });
     </script>
 </body>
 </html>
